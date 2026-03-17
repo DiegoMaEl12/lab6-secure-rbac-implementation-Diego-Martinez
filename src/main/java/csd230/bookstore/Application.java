@@ -3,12 +3,8 @@ package csd230.bookstore;
 
 import com.github.javafaker.Commerce;
 import com.github.javafaker.Faker;
-import csd230.bookstore.entities.BookEntity;
-import csd230.bookstore.entities.CartEntity;
-import csd230.bookstore.entities.UserEntity;
-import csd230.bookstore.repositories.CartEntityRepository;
-import csd230.bookstore.repositories.ProductEntityRepository;
-import csd230.bookstore.repositories.UserEntityRepository;
+import csd230.bookstore.entities.*;
+import csd230.bookstore.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -24,17 +20,26 @@ public class Application implements CommandLineRunner {
     private final ProductEntityRepository productRepository;
     private final CartEntityRepository cartRepository;
     private final UserEntityRepository userRepository;
+    private final LaptopRepository laptopRepository;
+    private final PhoneRepository phoneRepository;
+    private final MagazineEntityRepository magazineRepository;
     private final PasswordEncoder passwordEncoder;
 
 
     public Application(ProductEntityRepository productRepository,
                        CartEntityRepository cartRepository,
                        UserEntityRepository userRepository,
+                       LaptopRepository laptopRepository,
+                       PhoneRepository phoneRepository,
+                       MagazineEntityRepository magazineRepository,
                        PasswordEncoder passwordEncoder
     ) {
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.laptopRepository = laptopRepository;
+        this.phoneRepository = phoneRepository;
+        this.magazineRepository = magazineRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -74,12 +79,49 @@ public class Application implements CommandLineRunner {
             System.out.println("Saved Book " + (i + 1) + ": " + title + " by " + author);
         }
 
+        for (int i = 0; i < 5; i++) {
+            MagazineEntity mag = new MagazineEntity();
+            mag.setTitle(faker.book().title() + " Monthly");
+            mag.setPrice(Double.parseDouble(faker.commerce().price()));
+            mag.setCopies(20);
+            mag.setOrderQty(100);
+            mag.setCurrentIssue(java.time.LocalDateTime.now());
+            productRepository.save(mag);
+            System.out.println("Saved Magazine " + (i + 1) + ": " + mag.getTitle());
+        }
 
+        // 2. Generate Fake Laptops
+        String[] laptopBrands = {"Dell", "Apple", "Lenovo", "HP", "ASUS"};
+        for (int i = 0; i < 5; i++) {
+            LaptopEntity laptop = new LaptopEntity();
+            laptop.setBrand(laptopBrands[i % 5]);
+            laptop.setModel(faker.commerce().productName());
+            laptop.setPrice(Double.parseDouble(faker.commerce().price(500, 2500)));
+            laptop.setQuantity(10);
+            laptop.setStorage(512);
+            laptop.setCpu("Intel i" + (i % 2 == 0 ? "7" : "9"));
+            laptop.setRam(16);
+            productRepository.save(laptop);
+            System.out.println("Saved Laptop " + (i + 1) + ": " + laptop.getBrand() + " " + laptop.getModel());
+        }
+
+        // 3. Generate Fake Phones
+        String[] phoneBrands = {"Samsung", "iPhone", "Google", "OnePlus"};
+        for (int i = 0; i < 5; i++) {
+            PhoneEntity phone = new PhoneEntity();
+            phone.setBrand(phoneBrands[i % 4]);
+            phone.setModel(faker.commerce().productName());
+            phone.setPrice(Double.parseDouble(faker.commerce().price(300, 1200)));
+            phone.setQuantity(15);
+            phone.setStorage(128);
+            phone.setOs(i % 2 == 0 ? "Android" : "iOS");
+            productRepository.save(phone);
+            System.out.println("Saved Phone " + (i + 1) + ": " + phone.getBrand() + " " + phone.getModel());
+        }
 
         // ------------------------------------
         // CREATE USERS (Lecture 2.6)
         // ------------------------------------
-
 
         // Admin User (Can Add/Edit/Delete)
         UserEntity admin = new UserEntity("admin", passwordEncoder.encode("admin"), "ADMIN");

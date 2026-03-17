@@ -7,38 +7,49 @@ import BookForm from './BookForm';
 import Magazine from './Magazine';
 import MagazineForm from './MagazineForm';
 import Cart from './Cart';
-import Login from './pages/Login';       // NEW
-import Logout from './pages/Logout';     // NEW
-import { ProtectedRoute } from './routes/ProtectedRoute'; // NEW
-import { useAuth } from './provider/authProvider';        // NEW
-import api from './api/axiosConfig';     // NEW
+import Login from './pages/Login';
+import Logout from './pages/Logout';
+import { ProtectedRoute } from './routes/ProtectedRoute';
+import { useAuth } from './provider/authProvider';
+import api from './api/axiosConfig';
 import './App.css';
+import Laptop from "./Laptop.jsx";
+import LaptopForm from "./LaptopForm.jsx";
+import Phone from "./Phone.jsx";
+import PhoneForm from "./PhoneForm.jsx";
 function App() {
     const { token } = useAuth(); // Get auth state
     const [books, setBooks] = useState([]);
     const[magazines, setMagazines] = useState([]);
+    const[laptops, setLaptops] = useState([]);
+    const[phones, setPhones] = useState([]);
     const [cartCount, setCartCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        // If no token exists, don't attempt to fetch secure data
+
+    useEffect( () => {
         if (!token) {
             setLoading(false);
             return;
         }
         const loadInitialData = async () => {
             try {
-                const [booksRes, magsRes, cartRes] = await Promise.all([
+                const [booksRes, magsRes, cartRes, lapRes, phoneRes] = await Promise.all([
                     api.get('/books'),
                     api.get('/magazines'),
-                    api.get('/cart')
+                    api.get('/cart'),
+                    api.get('/laptops'),
+                    api.get('/phones')
                 ]);
+
                 setBooks(booksRes.data);
                 setMagazines(magsRes.data);
                 setCartCount(cartRes.data.products.length);
+                setLaptops(lapRes.data);
+                setPhones(phoneRes.data);
             } catch (err) {
                 console.error("Failed to load data", err);
             } finally {
-                setLoading(false);
+                setLoading(false); // This ensures the spinner stops even on error
             }
         };
         loadInitialData();
@@ -97,9 +108,36 @@ function App() {
                             ))}
                         </div>
                     } />
+                    <Route path="/laptops" element={
+                        <div className="list-container">
+                            <h1>Laptops</h1>
+                            {laptops.map(l => (
+                                <Laptop key={l.id} {...l}
+                                        onAddToCart={handleAddToCart}
+                                        onDelete={(id) => api.delete(`/laptops/${id}`).then(() => setLaptops(laptops.filter(lp => lp.id !== id)))}
+                                        onUpdate={(id, data) => api.put(`/laptops/${id}`, data).then(res => setLaptops(laptops.map(lp => lp.id === id ? res.data : lp)))}
+                                />
+                            ))}
+                        </div>
+                    } />
+                    <Route path="/phones" element={
+                        <div className="list-container">
+                            <h1>Phones</h1>
+                            {phones.map(l => (
+                                <Phone key={l.id} {...l}
+                                        onAddToCart={handleAddToCart}
+                                        onDelete={(id) => api.delete(`/phones/${id}`).then(() => setPhones(phones.filter(ph => ph.id !== id)))}
+                                        onUpdate={(id, data) => api.put(`/phones/${id}`, data).then(res => setPhones(phones.map(ph => ph.id === id ? res.data : ph)))}
+                                />
+                            ))}
+                        </div>
+                    } />
+
                     <Route path="/cart" element={<Cart api={api} onCartChange={(count) => setCartCount(count)} />} />
                     <Route path="/add" element={<BookForm onBookAdded={(b) => setBooks([...books, b])} api={api} />} />
                     <Route path="/add-magazine" element={<MagazineForm onMagazineAdded={(m) => setMagazines([...magazines, m])} api={api} />} />
+                    <Route path="/add-laptop" element={<LaptopForm onLaptopAdded={(l) => setLaptops([...laptops, l])} api={api} />} />
+                    <Route path="/add-phone" element={<PhoneForm onPhoneAdded={(p) => setPhones([...phones, p])} api={api} />} />
                     <Route path="/logout" element={<Logout />} />
                 </Route>
             </Routes>
