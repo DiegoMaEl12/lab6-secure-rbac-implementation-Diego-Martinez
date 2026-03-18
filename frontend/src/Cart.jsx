@@ -27,7 +27,9 @@ function Cart({ api, onCartChange }) {
                     <tbody>
                     {cart.products.map(p => (
                         <tr key={p.id}>
-                            <td>{p.title || p.description}</td>
+                            <td>{p.title ||
+                                (p.brand ? `${p.brand} ${p.model}` : p.model) ||
+                                p.description}</td>
                             <td>${p.price.toFixed(2)}</td>
                             <td><button onClick={() => handleRemove(p.id)}>Remove</button></td>
                         </tr>

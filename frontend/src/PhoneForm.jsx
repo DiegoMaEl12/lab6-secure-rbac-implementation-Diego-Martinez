@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import { useAuth } from './provider/authProvider';
+import { Navigate} from "react-router";
 
 function PhoneForm({ onPhoneAdded, api }) {
+    const { isAdmin } = useAuth();
+    if (!isAdmin) return <Navigate to="/" replace />;
+
     const [form, setForm] = useState({ brand: '', model: '', price: '', storage: 512, os: '', quantity: 10 });
 
     const handleSubmit = async (e) => {

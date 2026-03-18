@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { useAuth } from './provider/authProvider';
+import { Navigate} from "react-router";
 
 function LaptopForm({ onLaptopAdded, api }) {
+    const { isAdmin } = useAuth();
+    if (!isAdmin) return <Navigate to="/" replace />;
     const [form, setForm] = useState({ brand: '', model: '', price: '', storage: 512, cpu: '', ram: 16, quantity: 10 });
 
     const handleSubmit = async (e) => {

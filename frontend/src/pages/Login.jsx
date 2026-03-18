@@ -6,30 +6,22 @@ import api from "../api/axiosConfig";
 const Login = () => {
     const { setToken } = useAuth();
     const navigate = useNavigate();
-
-    // NEW for 2.12.1: Use location to check for "expired" query parameter
     const location = useLocation();
+
     const queryParams = new URLSearchParams(location.search);
     const isExpired = queryParams.get("expired");
 
-    const [email, setEmail] = useState(""); // Variable named 'email' to match Backend LoginReq
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError(""); // Clear previous errors
+        setError("");
 
         try {
-            // 1. Call the Spring Boot AuthController
-            // We pass { email, password } to match the LoginReq.java POJO
             const res = await api.post("/auth/login", { email, password });
-
-            // 2. Save the JWT to context (which also updates localStorage)
             setToken(res.data.token);
-
-            // 3. Redirect to home page
-            // 'replace: true' prevents the user from clicking "back" to the login page
             navigate("/", { replace: true });
         } catch (err) {
             console.error("Login Error:", err.response?.data || err.message);
